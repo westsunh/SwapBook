@@ -180,7 +180,6 @@ async createSwipeAndMaybeMatch(userId: string, dto: CreateSwipeDto) {
     }
 
     // 4) 이미 스와이프 했냐? → 409
-    // (미리 체크 or 유니크 에러(P2002)로 처리. 둘 다 하면 UX가 더 좋음)
     const already = await this.prisma.swipe.findUnique({
       where: { fromUserId_userBookId: { fromUserId: me.id, userBookId: target.id } },
       select: { id: true },
@@ -216,8 +215,7 @@ async createSwipeAndMaybeMatch(userId: string, dto: CreateSwipeDto) {
 
         // 2) LIKE면 “상호 조건” 확인
         if (action === SwipeAction.LIKE && myUserBookId) {
-          // 최소 상호 조건:
-          // 상대가 과거에 내 책(myUserBookId)을 LIKE 한 적이 있으면 매칭
+          // 상대가 내 책(myUserBookId)을 LIKE 한 적이 있으면 매칭
           const reciprocal = await tx.swipe.findFirst({
             where: {
               fromUserId: target.ownerUserId,
@@ -257,7 +255,7 @@ async createSwipeAndMaybeMatch(userId: string, dto: CreateSwipeDto) {
         return { swipe, matchCreated, match }
       })
     } catch (e: any) {
-      // Prisma 유니크 충돌 처리 (이미 스와이프 / 이미 매칭 등)
+      // Prisma 유니크 충돌 처리
       if (e instanceof Prisma.PrismaClientKnownRequestError) {
         if (e.code === 'P2002') {
           // 어떤 유니크인지 구체적으로 나누고 싶으면 e.meta?.target 확인
@@ -268,7 +266,6 @@ async createSwipeAndMaybeMatch(userId: string, dto: CreateSwipeDto) {
         }
       }
 
-      // Match create에서 유니크 충돌(P2002)이 나면 "이미 매칭된 책"이라는 뜻이기도 함
       throw new HttpException(
         { success: false, error: { code: 'INTERNAL_ERROR', message: '스와이프 처리 중 오류가 발생했습니다.' } },
         HttpStatus.INTERNAL_SERVER_ERROR,

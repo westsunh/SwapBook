@@ -1,6 +1,7 @@
-import { Controller, Get, Param, Query } from '@nestjs/common'
+import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common'
 import { SwipeService } from './swipe.service'
 import { GetSwipeCardsQuery } from './dto/get-swipe-cards.query'
+import { CreateSwipeDto } from './dto/create-swipe.dto'
 
 @Controller('swipe')
 export class SwipeController {
@@ -16,13 +17,11 @@ export class SwipeController {
     return { success: true, data: result }
   }
 
-  // 2) 추가 배치: 동일 로직인데 내 책 목록은 굳이 안 내려줘도 됨
-  @Get('cards/:userId')
-  async moreCards(
-    @Param('userId') userId: string,
-    @Query() query: GetSwipeCardsQuery,
-  ) {
-    const result = await this.swipeService.getRecommendations(userId, query.limit ?? 20, query.offset ?? 0, false)
+  // 3) 스와이프 저장 + 매칭 호출
+  @Post(':userId')
+  async createSwipe(@Param('userId') userId: string, @Body() dto: CreateSwipeDto) {
+    const result = await this.swipeService.createSwipeAndMaybeMatch(userId, dto)
     return { success: true, data: result }
   }
+
 }

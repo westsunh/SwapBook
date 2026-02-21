@@ -5,6 +5,9 @@ import Image from "next/image";
 import ChevornLeft from "@/public/icons/ChevornLeft.svg";
 import HarryCover from "@/public/book_covers/harryPorter.png";
 import SickGrown from "@/public/book_covers/sickGrown.png";
+import image from "@/public/book_covers/image.png";
+import five from "@/public/book_covers/5.png";
+import six from "@/public/book_covers/6.png";
 import UncomfortableCU from "@/public/book_covers/uncomfortableCU.jpg";
 import { IoMdThumbsDown, IoMdThumbsUp } from "react-icons/io";
 import { useRouter } from "next/navigation";
@@ -90,6 +93,21 @@ const bookList = [
     id: 3,
     title: "불편한 편의점",
     src: UncomfortableCU,
+  },
+  {
+    id: 4,
+    title: "세이노의 가르침",
+    src: image,
+  },
+  {
+    id: 5,
+    title: "트렌드 코리아 2025",
+    src: five,
+  },
+  {
+    id: 6,
+    title: "사피엔스",
+    src: six,
   },
 ];
 

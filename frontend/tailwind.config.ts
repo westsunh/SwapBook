@@ -12,11 +12,13 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        primary: { normal: "#FEC627", light: "#FFF1D1" },
+        primary: { normal: "#FEC627", light: "#FFF1D1", heavy: "#FFA301" },
         "custom-red": "#cc0000",
         neutral: {
           99: "#F5F5F5",
+          90: "#C4C4C4",
           80: "#B0B0B0",
+          70: "#9B9B9B",
           40: "#5C5C5C",
           30: "#474747",
         },

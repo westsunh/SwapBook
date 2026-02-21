@@ -2,11 +2,12 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { FaChevronLeft } from "react-icons/fa6";
+import ChevornLeft from "@/public/icons/ChevornLeft.svg";
 import HarryCover from "@/public/book_covers/harryPorter.png";
 import SickGrown from "@/public/book_covers/sickGrown.png";
 import UncomfortableCU from "@/public/book_covers/uncomfortableCU.jpg";
 import { IoMdThumbsDown, IoMdThumbsUp } from "react-icons/io";
+import { useRouter } from "next/navigation";
 
 const questions = [
   {
@@ -93,6 +94,7 @@ const bookList = [
 ];
 
 export default function QuestionPage() {
+  const router = useRouter();
   const [currentStep, setCurrentStep] = useState(0);
   // 핵심: 각 단계에서 선택한 'A' 또는 'B' ID를 저장 (예: ['A', 'B', 'A'])
   const [selectedOptions, setSelectedOptions] = useState<(string | null)[]>([
@@ -128,15 +130,8 @@ export default function QuestionPage() {
       localStorage.setItem("MBTI", finalAnswers.join(""));
       localStorage.setItem("ratings", JSON.stringify(ratings));
       console.log("성향 결과:", finalAnswers, "도서 평가:", ratings);
-      alert("분석이 완료되었습니다!");
+      router.push("/result");
     }
-  };
-
-  const handleGoFirst = () => {
-    setCurrentStep(0);
-    setSelectedOptions([null, null, null]);
-    setRatings({});
-    setActiveBookId(null);
   };
 
   const handleBack = () => {
@@ -172,15 +167,9 @@ export default function QuestionPage() {
   return (
     <div className="flex flex-col min-h-screen bg-white font-pretendard leading-6 tracking-[-0.03em]">
       {/* Header Area */}
-      <header className="flex items-center justify-between p-4 pt-12!">
+      <header className="flex items-center justify-between p-4 pt-16!">
         <button onClick={handleBack} className="text-gray-500 text-xl">
-          <FaChevronLeft />
-        </button>
-        <button
-          className="text-neutral-80 text-sm font-medium"
-          onClick={handleGoFirst}
-        >
-          처음으로
+          <Image src={ChevornLeft} alt="chevorn-left" />
         </button>
       </header>
 

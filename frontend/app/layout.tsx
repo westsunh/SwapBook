@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 // import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { pretendard, partialSans } from "@/public/fonts"; // 방금 만든 설정 불러오기
+import { Toaster } from "react-hot-toast";
 
 // const geistSans = Geist({
 //   variable: "--font-geist-sans",
@@ -28,6 +29,7 @@ export default function RootLayout({
       lang="ko"
       className={`${pretendard.variable} ${partialSans.variable}`}
     >
+      <Toaster toastOptions={{ duration: 1500, removeDelay: 1000 }} />
       <body className={pretendard.className}>{children}</body>
     </html>
   );

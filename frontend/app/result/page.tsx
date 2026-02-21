@@ -19,7 +19,7 @@ export default function ResultPage() {
         asChild
         className="absolute bottom-[34px] w-[353px] h-14 bg-white rounded-xl py-3 grid place-items-center hover:bg-neutral-99"
       >
-        <Link href={"/"}>
+        <Link href={"/register"}>
           <p className="text-lg font-medium text-black">스왑할 책 등록하기</p>
         </Link>
       </Button>

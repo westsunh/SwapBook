@@ -1,7 +1,7 @@
 "use client";
 
 import { useForm, Controller } from "react-hook-form";
-import { FaCamera, FaStar, FaXmark } from "react-icons/fa6";
+import { FaStar, FaXmark } from "react-icons/fa6";
 import { IoSearch } from "react-icons/io5";
 import { useState, useEffect } from "react";
 import IconX from "@/public/icons/IconX.svg";

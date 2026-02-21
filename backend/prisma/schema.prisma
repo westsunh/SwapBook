@@ -1,0 +1,236 @@
+
+generator client {
+provider = "prisma-client-js"
+}
+
+datasource db {
+provider = "postgresql"
+url      = env("DATABASE_URL")
+}
+
+// --------------------
+// ENUMS
+// --------------------
+enum SwipeAction {
+  LIKE
+  PASS
+}
+
+enum ReadSentiment {
+  LIKE
+  DISLIKE
+  NEUTRAL
+}
+
+// --------------------
+// DISTRICTS (서울 25구 + 수원 장안구 seed)
+// --------------------
+model District {
+  // 예: "SEOUL_GANGNAM", "SUWON_JANGAN"
+  code      String   @id
+  cityName  String   // 예: "서울특별시", "경기도 수원시"
+  name      String   // 예: "강남구", "장안구"
+
+  createdAt DateTime @default(now())
+
+  users     User[]
+}
+
+// --------------------
+// USERS / MBTI PROFILES
+// -------------------
+model User {
+  id            String   @id @default(cuid())
+  nickname      String   @unique
+
+  // 같은 구 단위 매칭용 (FK로 오타 방지)
+  districtCode  String
+  district      District @relation(fields: [districtCode], references: [code])
+
+  // 온보딩 결과(코드) - FK로 유효값 보장
+  mbtiCode      String
+  mbtiProfile   ReadingTypeProfile @relation(fields: [mbtiCode], references: [code])
+
+  // 교환 횟수(표시용 캐시)
+  exchangeCount Int      @default(0)
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // relations
+  userBooks      UserBook[]
+  readLogs       ReadLog[]
+  swipesFrom     Swipe[]  @relation("SwipeFrom")
+  swipesTo       Swipe[]  @relation("SwipeTo")
+
+  matchesA       Match[]  @relation("MatchA")
+  matchesB       Match[]  @relation("MatchB")
+
+  readingRecords ReadingRecord[]
+
+  @@index([districtCode, mbtiCode])
+}
+
+model ReadingTypeProfile {
+  // SFI, LRG ...
+  code      String  @id
+  name      String
+  summary   String
+
+  createdAt DateTime @default(now())
+
+  users     User[]
+}
+
+// --------------------
+// BOOKS (Best)
+// --------------------
+model Book {
+  id        String   @id @default(cuid())
+  title     String   @unique
+  author String?
+
+  createdAt DateTime @default(now())
+
+  // relations
+  userBooks  UserBook[]
+  readLogs   ReadLog[]
+  records    ReadingRecord[]
+
+  @@index([title])
+}
+
+// --------------------
+// READ LOGS (읽은 책 + 👍/👎)
+// --------------------
+model ReadLog {
+  id        String        @id @default(cuid())
+  userId    String
+  bookId    String
+  sentiment ReadSentiment @default(NEUTRAL) // like dislike neural
+
+  createdAt DateTime      @default(now())
+
+  user      User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  book      Book @relation(fields: [bookId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, bookId])
+  @@index([bookId])
+}
+
+// --------------------
+// USER BOOKS (교환용 실물 책)
+// --------------------
+model UserBook {
+  id            String        @id @default(cuid())
+  ownerUserId   String
+  bookId        String
+
+  rating        Int?          // 1~5
+  oneLineReview String?
+  isAvailable   Boolean       @default(true)
+
+  hashtags      Json? // ['','']
+
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  imageUrl      String? 
+
+  owner         User @relation(fields: [ownerUserId], references: [id], onDelete: Cascade)
+  book          Book @relation(fields: [bookId], references: [id], onDelete: Cascade)
+
+  swipes        Swipe[]
+  matchAsA      Match? @relation("MatchBookA")
+  matchAsB      Match? @relation("MatchBookB")
+
+  @@index([ownerUserId, isAvailable])
+  @@index([bookId, isAvailable])
+}
+
+// --------------------
+// SWIPES (카드 단위 스와이프)
+// 카드 = 상대의 UserBook
+// --------------------
+model Swipe {
+  id         String      @id @default(cuid())
+  fromUserId String
+  toUserId   String
+  userBookId String
+  action     SwipeAction
+
+  createdAt  DateTime    @default(now())
+
+  fromUser   User @relation("SwipeFrom", fields: [fromUserId], references: [id], onDelete: Cascade)
+  toUser     User @relation("SwipeTo", fields: [toUserId], references: [id], onDelete: Cascade)
+  userBook   UserBook @relation(fields: [userBookId], references: [id], onDelete: Cascade)
+
+  // 같은 카드에 중복 스와이프 방지
+  @@unique([fromUserId, userBookId])
+  @@index([toUserId, action])
+  @@index([fromUserId, createdAt])
+}
+
+// --------------------
+// MATCHES (양쪽 LIKE 성립 시 생성)
+// --------------------
+model Match {
+  id          String   @id @default(cuid())
+
+  userAId     String
+  userBId     String
+
+  userBookAId String   @unique
+  userBookBId String   @unique
+
+  createdAt   DateTime @default(now())
+
+  userA       User @relation("MatchA", fields: [userAId], references: [id], onDelete: Cascade)
+  userB       User @relation("MatchB", fields: [userBId], references: [id], onDelete: Cascade)
+
+  userBookA   UserBook @relation("MatchBookA", fields: [userBookAId], references: [id], onDelete: Restrict)
+  userBookB   UserBook @relation("MatchBookB", fields: [userBookBId], references: [id], onDelete: Restrict)
+
+  @@index([createdAt])
+}
+
+
+// --------------------
+// READING RECORD + IMAGES
+// --------------------
+model ReadingRecord {
+  id        String   @id @default(cuid())
+  userId    String
+  bookId    String?
+
+  content   String?
+  rating    Int?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user      User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  book      Book? @relation(fields: [bookId], references: [id], onDelete: SetNull)
+
+  images    ReadingRecordImage[]
+
+  @@index([userId, createdAt])
+}
+
+model ReadingRecordImage {
+  id         String   @id @default(cuid())
+  recordId   String
+  record     ReadingRecord @relation(fields: [recordId], references: [id], onDelete: Cascade)
+
+  storageKey String   @unique
+  url        String
+
+  mimeType   String?
+  sizeBytes  Int?
+  width      Int?
+  height     Int?
+  order      Int      @default(0)
+
+  createdAt  DateTime @default(now())
+
+  @@index([recordId, order])
+}

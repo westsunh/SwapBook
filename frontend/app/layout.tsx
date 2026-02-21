@@ -29,8 +29,10 @@ export default function RootLayout({
       lang="ko"
       className={`${pretendard.variable} ${partialSans.variable}`}
     >
-      <Toaster toastOptions={{ duration: 1500, removeDelay: 1000 }} />
-      <body className={pretendard.className}>{children}</body>
+      <body className={pretendard.className}>
+        <Toaster toastOptions={{ duration: 1500, removeDelay: 1000 }} />
+        {children}
+      </body>
     </html>
   );
 }
